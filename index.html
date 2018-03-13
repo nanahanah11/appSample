@@ -1,78 +1,108 @@
 <!DOCTYPE html>
-<!--
-    Copyright (c) 2012-2016 Adobe Systems Incorporated. All rights reserved.
-
-    Licensed to the Apache Software Foundation (ASF) under one
-    or more contributor license agreements.  See the NOTICE file
-    distributed with this work for additional information
-    regarding copyright ownership.  The ASF licenses this file
-    to you under the Apache License, Version 2.0 (the
-    "License"); you may not use this file except in compliance
-    with the License.  You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-    Unless required by applicable law or agreed to in writing,
-    software distributed under the License is distributed on an
-    "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-     KIND, either express or implied.  See the License for the
-    specific language governing permissions and limitations
-    under the License.
--->
 <html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width">
+        <title>jomPeduli</title>
 
-<head>
-    <meta charset="utf-8" />
-    <meta name="format-detection" content="telephone=no" />
-    <meta name="msapplication-tap-highlight" content="no" />
-    <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width" />
-    <!-- This is a wide open CSP declaration. To lock this down for production, see below. -->
-    <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline'; style-src 'self' 'unsafe-inline'; media-src *" />
-    <!-- Good default declaration:
-    * gap: is required only on iOS (when using UIWebView) and is needed for JS->native communication
-    * https://ssl.gstatic.com is required only on Android and is needed for TalkBack to function properly
-    * Disables use of eval() and inline scripts in order to mitigate risk of XSS vulnerabilities. To change this:
-        * Enable inline JS: add 'unsafe-inline' to default-src
-        * Enable eval(): add 'unsafe-eval' to default-src
-    * Create your own at http://cspisawesome.com
-    -->
-    <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: gap: 'unsafe-inline' https://ssl.gstatic.com; style-src 'self' 'unsafe-inline'; media-src *" /> -->
+        <link rel="stylesheet" href="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css" />
+		<script src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
+		<script src="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
 
-    <link rel="stylesheet" type="text/css" href="css/index.css" />
-    <title>Dog Years Calculator</title>
-    <script>
+		<style>
+			#footer
+			{
+				position: absolute;
+				bottom: 0;
+				width:100%;
+			}
+		</style>
+		<script>
+        var db;
+            
         window.onload=function()
         {
-            document.getElementById('btnCalc').addEventListener('click',calcAge);
+            document.getElementById('btnSave').addEventListener('click', saveData);
+            db = window.openDatabase("report",  "1.0", "aidaraihanah", 200000);
         }
-        function calcAge(e)
+        
+        function saveData(e)
         {
-            document.getElementById('dogAge').value;
-            age=age*7;
-            var result="In dog years, your dog is "+age;
-            document.getElementById('result').innerHTML=result;
+            db.transaction(saveRecord, onSuccess, onError);
         }
-    </script>
-</head>
+            
+        function saveRecord(transaction)
+        {
+            var note= document.getElementById('note').value;
+            //var email = document.getElementById('email').value;
+            transaction.executeSql('CREATE TABLE IF NOT EXISTS reportList (id INTEGER PRIMARY KEY AUTOINCREMENT, Note TEXT NOT NULL) ');
+            
+            var sql= "INSERT INTO reportList (Note) VALUES ('" + note +"')";
+            console.log(sql);
+            transaction.executeSql(sql);
+            transaction.executeSql("SELECT * FROM reportList", [], getSuccess, getError);
+        }
+        function getSuccess(tx, result)
+        {
+            var rows = result.rows;
+            for(var x=0; x< rows.length; x++){
+                var name = result.rows[x].Note;
+                //var email = result.rows[x].Email;
+                var out = "<li>" + note + "</li>";
+                //document.getElementById('members').innerHTML += out;
+            }
+            
+            $('#members').listview('refresh');
+        }
+        function getError(e)
+        {
+            console.log(e);
+        }
+            
+        function onSuccess()
+        {
+            console.log("Record Saved");
+        }
+            
+        function onError(error)
+        {
+            console.log(error);
+        }
+        </script>
+    </head>
+    <body>
+    	<div data-role="page" id="page1">
+    		<div data-role="header">
+    			<h1>Menu</h1>
+    		</div> <!--header-->
+    		<div data-role="main" class="ui-content">
+    			<button onclick="location.href='index.html#page2'">Create Report</button>
+    			<button onclick="location.href='index.html#page2'">View Report</button>
+    			<button onclick="location.href='index.html#page2'">View Account</button>
+    			<button onclick="location.href='index.html#page2'">Edit Profile</button>
+    		</div> <!--main-->
+    		<div data-role="footer" id="footer">
+    				<h2>by aidaraihanah</h2>
+    		</div> <!--footer-->
+    	</div> <!--page-->
 
-<body>
-    <div class="app">
-        <h1>Hello World</h1>
-        <div id="deviceready" class="blink">
-            <p class="event listening">Connecting to Device</p>
-            <p class="event received">Device is Ready</p>
-        </div>
-    </div>
-    <script type="text/javascript" src="cordova.js"></script>
-    <script type="text/javascript" src="js/index.js"></script>
-    <script type="text/javascript">
-        app.initialize();
-    </script>
-    <h1>Dog Years Calculator</h1>
-    <label for="dogAge">Dog Age in Human Years:</label>
-    <input id="dogAge" type="number"/>
-    <button id="btnCalc">Calculate</button>
-    <div id="result"></div>
-</body>
+    	<div data-role="page" id="page2">
+    		<div data-role="header">
+    			<h1>Create Report</h1>
+    		</div> <!--header-->
+    		<div data-role="main" class="ui-content">
+    			<label for="note">Nota</label>
+        		<input type="text" id="note" />
+      
+        		<button id="btnSave" type="submit">Save</button>
+        		<ul id="members" data-role="listview">
+        		</ul>
+    		</div> <!--main-->
+    		<div data-role="footer" id="footer">
+    				<h2>by aidaraihanah</h2>
+    		</div> <!--footer-->
+    	</div> <!--page-->
 
+        <script type="text/javascript" src="cordova.js"></script>
+    </body>
 </html>
